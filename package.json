@@ -4,7 +4,6 @@
   },
   "dependencies": {
     "chalk": "^3.0.0-beta.2",
-    "generator-lx": "^1.0.1",
     "generator-node": "^2.8.0",
     "rux-cli": "^1.0.7",
     "ruxjs": "^0.0.6",
