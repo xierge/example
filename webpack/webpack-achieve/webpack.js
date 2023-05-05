@@ -32,6 +32,21 @@ class Compiler {
   }
 }
 
+function tryExtensions(modluePath, extensions) {
+  if (fs.existsSync(modluePath)) {
+    return
+  }
+
+  for (let i = 0; i < extensions?.length; i++) {
+    let filePath = modluePath + extensions[i]
+    if (fs.existsSync(filePath)) {
+      return filePath
+    }
+  }
+
+  throw new Error(`无法找到${modulePath}`)
+}
+
 class Compilation {
   constructor(webpackOptions) {
     this.options = webpackOptions;
@@ -84,7 +99,6 @@ class Compilation {
       (code, loader) => loader(code),
       sourceCode
     );
-    console.log(sourceCode);
     // 7.1 先把源代码编译成 [AST](https://astexplorer.net/)
     let ast = parser.parse(sourceCode, { sourceType: "module" });
 
@@ -93,12 +107,19 @@ class Compilation {
         const { node } = nodePath;
         // 7.2：在 `AST` 中查找 `require` 语句，找出依赖的模块名称和绝对路径
         if (node.callee.name === "require") {
-          //获取依赖的模块
+          // 获取依赖的模块
           let depModuleName = node.arguments[0].value;
 
           let dirname = path.posix.dirname(modulePath);
 
           let depModulePath = path.posix.join(dirname, depModuleName);
+
+          // 获取配置中的extensions
+          let extensions = this.options.resolve?.extensions || ['.js']
+
+          depModulePath = tryExtensions(depModulePath, extensions)
+
+          console.log(depModulePath);
         }
       },
     });
