@@ -6,7 +6,7 @@ const webpackOptions = require("./webpack.config.js");
 const compiler = webpack(webpackOptions);
 
 compiler.run((err, stats) => {
-  console.log(err);
+  // console.log(err);
   console.log(
     stats.toJson({
       assets: true, //打印本次编译产出的资源

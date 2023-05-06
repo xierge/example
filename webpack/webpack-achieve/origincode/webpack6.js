@@ -35,7 +35,7 @@ class Compilation {
     this.options = webpackOptions;
     this.module = [];
     this.chunks = [];
-    this.assets = [];
+    this.assets = {};
     this.fileDependencies = [];
   }
 

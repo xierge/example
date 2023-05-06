@@ -1,4 +1,11 @@
 const { SyncHook } = require("tapable");
+const path = require("path");
+const fs = require("fs");
+function toUnixPath(path) {
+  return path.replace(/\\/g, "/");
+}
+
+const baseDir = toUnixPath(process.cwd());
 
 class Compiler {
   constructor(webpackOptions) {
@@ -28,7 +35,7 @@ class Compilation {
     this.options = webpackOptions;
     this.module = [];
     this.chunks = [];
-    this.assets = [];
+    this.assets = {};
     this.fileDependencies = [];
   }
 
@@ -39,7 +46,44 @@ class Compilation {
     } else {
       entry = this.options.entry;
     }
+
+    for (let entryName in entry) {
+      let entryFilePath = path.posix.join(baseDir, entry[entryName]);
+      this.fileDependencies.push(entryFilePath);
+      let entryModule = this.buildModule(entryName, entryFilePath);
+      this.module.push(entryModule);
+    }
     callback();
+  }
+
+  buildModule(name, modulePath) {
+    let sourceCode = fs.readFileSync(modulePath, "utf-8");
+
+    let moduleId = "./" + path.posix.relative(baseDir, modulePath);
+
+    let module = {
+      id: moduleId,
+      names: [name],
+      dependencies: [],
+      _source: "",
+    };
+    let loaders = [];
+
+    let { rules = [] } = this.options;
+
+    rules.forEach((rule) => {
+      let { test } = rule;
+      if (modulePath.match(test)) {
+        loaders.push(...rule.use);
+      }
+    });
+
+    sourceCode = loaders?.reduceRight(
+      (code, loader) => loader(code),
+      sourceCode
+    );
+
+    return module;
   }
 }
 
