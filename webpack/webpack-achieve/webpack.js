@@ -1,3 +1,24 @@
+/*
+ * @Author: 李鹏玺 2899952565@qq.com
+ * @Date: 2023-05-06 11:02:37
+ * @LastEditors: 李鹏玺 2899952565@qq.com
+ * @LastEditTime: 2023-05-10 18:25:54
+ * @FilePath: /example/webpack/webpack-achieve/webpack.js
+ * @Description: 手写 webpack
+ */
+
+// 1. 项目初始化
+// 2. 搭建结构，读取配置参数
+// 3. 用配置参数对象初始化 Compiler 对象
+// 4. 挂载配置文件中的插件
+// 5. 执行 Compiler 对象的 run 方法开始执行编译
+// 6. 根据配置文件中的 entry 配置项找到所有的入口
+// 7. 从入口文件出发，调用配置的 loader 规则，对各模块进行编译
+// 8. 找出此模块所依赖的模块，再对依赖模块进行编译
+// 9. 等所有模块都编译完成后，根据模块之间的依赖关系，组装代码块 chunk
+// 10. 把各个代码块 chunk 转换成一个一个文件加入到输出列表
+// 11. 确定好输出内容之后，根据配置的输出路径和文件名，将文件内容写入到文件系统
+
 const { SyncHook } = require("tapable");
 const path = require("path");
 const fs = require("fs");
@@ -5,39 +26,33 @@ const parser = require("@babel/parser");
 const tarverse = require("@babel/traverse").default;
 const generator = require("@babel/generator").default;
 const types = require("@babel/types");
-function toUnixPath(path) {
-  return path.replace(/\\/g, "/");
-}
 
-const baseDir = toUnixPath(process.cwd());
-
+const baseDir = process.cwd();
 class Compiler {
-  constructor(webpackOptions) {
-    this.options = webpackOptions;
+  constructor(options) {
+    this.options = options;
+
     this.hooks = {
       run: new SyncHook(),
       done: new SyncHook(),
     };
   }
-
   run(callback) {
     this.hooks.run.call();
-    const onCompiled = (err, stats, fileDependencies) => {
-      for (let filename in stats.assets) {
-        let filePath = path.join(this.options.output.path, filename);
-        fs.writeFileSync(filePath, stats.assets[filename], "utf8");
+    // 文件变化后 重新编译
+    const onCompiled = (error, stats, fileDependencies) => {
+      for (const fileName in stats.assets) {
+        let filePath = path.posix.join(this.options.output.path, fileName);
+        fs.writeFileSync(filePath, stats.assets[fileName], "utf-8");
       }
 
-      callback(err, {
+      callback(error, {
         toJson: () => stats,
-      });
-
-      fileDependencies.forEach((fileDependencie) => {
-        fs.watch(fileDependencie, () => this.compile(onCompiled));
       });
 
       this.hooks.done.call();
     };
+
     this.compile(onCompiled);
   }
 
@@ -47,48 +62,34 @@ class Compiler {
   }
 }
 
-function tryExtensions(modluePath, extensions) {
-  if (fs.existsSync(modluePath)) {
-    return;
-  }
-
-  for (let i = 0; i < extensions?.length; i++) {
-    let filePath = modluePath + extensions[i];
-    if (fs.existsSync(filePath)) {
-      return filePath;
-    }
-  }
-
-  throw new Error(`无法找到${modulePath}`);
-}
-
 class Compilation {
-  constructor(webpackOptions) {
-    this.options = webpackOptions;
+  constructor(options) {
+    this.options = options;
     this.modules = [];
+    this.fileDependencies = [];
     this.chunks = [];
     this.assets = {};
-    this.fileDependencies = [];
   }
 
   build(callback) {
-    let entry = {};
-    if (typeof this.options.entry === "string") {
-      entry.main = this.options.entry;
-    } else {
-      entry = this.options.entry;
+    // 入口文件：对单文件和多文件统一格式
+    let { entry: entryFile } = this.options;
+    if (typeof entryFile === "string") {
+      entryFile = { main: entryFile };
     }
 
-    for (let entryName in entry) {
-      let entryFilePath = path.posix.join(baseDir, entry[entryName]);
+    for (let entryName in entryFile) {
+      let entryFilePath = path.posix.resolve(baseDir, entryFile[entryName]);
       this.fileDependencies.push(entryFilePath);
       let entryModule = this.buildModule(entryName, entryFilePath);
       this.modules.push(entryModule);
+
       let chunk = {
         name: entryName,
         entryModule,
         modules: this.modules.filter((item) => item.names.includes(entryName)),
       };
+
       this.chunks.push(chunk);
     }
 
@@ -108,89 +109,89 @@ class Compilation {
     );
   }
 
-  buildModule(name, modulePath) {
-    let sourceCode = fs.readFileSync(modulePath, "utf-8");
-
-    let moduleId = "./" + path.posix.relative(baseDir, modulePath);
+  buildModule(name, filePath) {
+    let sourceCode = fs.readFileSync(filePath, "utf-8");
+    let moduleId = "./" + path.posix.relative(baseDir, filePath);
 
     let module = {
       id: moduleId,
       names: [name],
-      dependencies: [],
       _source: "",
+      dependencies: [],
     };
-    let loaders = [];
 
     let { rules = [] } = this.options;
+    let loaders = [];
 
-    rules.forEach((rule) => {
-      let { test } = rule;
-      if (modulePath.match(test)) {
+    for (const rule of rules) {
+      const { test } = rule;
+      if (filePath.match(test)) {
         loaders.push(...rule.use);
       }
-    });
+    }
 
     sourceCode = loaders?.reduceRight(
       (code, loader) => loader(code),
       sourceCode
     );
-    // 第七步：找出此模块所依赖的模块，再对依赖模块进行编译
-    // 7.1 先把源代码编译成 [AST](https://astexplorer.net/)
-    let ast = parser.parse(sourceCode, { sourceType: "module" });
+
+    // 转化成ast
+    let ast = parser.parse(sourceCode, {
+      sourceType: "module",
+    });
 
     tarverse(ast, {
       CallExpression: (nodePath) => {
         const { node } = nodePath;
-        // 7.2：在 `AST` 中查找 `require` 语句，找出依赖的模块名称和绝对路径
         if (node.callee.name === "require") {
-          // 获取依赖的模块
           let depModuleName = node.arguments[0].value;
 
-          // 获取当前正在编译的模所在的目录
-          let dirname = path.posix.dirname(modulePath);
+          let dirname = path.posix.dirname(filePath);
 
-          // 获取依赖模块的绝对路径
-          let depModulePath = path.posix.join(dirname, depModuleName);
+          let depModulePath = path.posix.resolve(dirname, depModuleName);
 
-          // 获取配置中的extensions
           let extensions = this.options.resolve?.extensions || [".js"];
 
-          //尝试添加后缀，找到一个真实在硬盘上存在的文件
           depModulePath = tryExtensions(depModulePath, extensions);
 
-          // 7.3：将依赖模块的绝对路径 push 到 `this.fileDependencies` 中
-          this.fileDependencies.push(depModulePath);
-
-          // 7.4：生成依赖模块的`模块 id`
           let depModuleId = "./" + path.posix.relative(baseDir, depModulePath);
 
-          // 7.5：修改语法结构，把依赖的模块改为依赖`模块 id` require("./name")=>require("./src/name.js")
           node.arguments = [types.stringLiteral(depModuleId)];
 
-          // 7.6：将依赖模块的信息 push 到该模块的 `dependencies` 属性中
           module.dependencies.push({ depModuleId, depModulePath });
         }
       },
     });
 
-    // 7.7：生成新代码，并把转译后的源代码放到 `module._source` 属性上
     let { code } = generator(ast);
     module._source = code;
-
-    // 7.8：对依赖模块进行编译（对 `module 对象`中的 `dependencies` 进行递归执行 `buildModule` ）
     module.dependencies.forEach(({ depModuleId, depModulePath }) => {
       let existModule = this.modules.find((item) => item.id === depModuleId);
       if (existModule) {
         existModule.names.push(name);
       } else {
-        // 7.9：对依赖模块编译完成后得到依赖模块的 `module 对象`，push 到 `this.modules` 中
         let depModule = this.buildModule(name, depModulePath);
         this.modules.push(depModule);
       }
     });
-    // 7.10：等依赖模块全部编译完成后，返回入口模块的 `module` 对象
+
     return module;
   }
+}
+
+function tryExtensions(path, extensions) {
+  if (fs.existsSync(path)) {
+    return path;
+  }
+
+  for (let i = 0; i < extensions.length; i++) {
+    const filePath = path + extensions[i];
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+
+  return new Error("无法找到" + path);
 }
 
 //生成运行时代码
@@ -224,14 +225,15 @@ function getSource(chunk) {
       `;
 }
 
-function webpack(webpackOptions) {
+module.exports = function webpack(webpackOptions) {
   const compiler = new Compiler(webpackOptions);
 
+  // 插件机制
   const { plugins = [] } = webpackOptions;
-  for (let plugin of plugins) {
+  // 根据插件的生命周期钩子函数在compiler对应钩子注册事件
+  for (const plugin of plugins) {
     plugin.apply(compiler);
   }
-  return compiler;
-}
 
-module.exports = webpack;
+  return compiler;
+};
