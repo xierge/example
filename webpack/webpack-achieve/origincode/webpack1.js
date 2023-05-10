@@ -8,9 +8,9 @@
  */
 
 class Compiler {
-  constructor() {}
+  constructor() { }
 
-  run(callback) {}
+  run(callback) { }
 }
 
 //第一步：搭建结构，读取配置参数，这里接受的是webpack.config.js中的参数

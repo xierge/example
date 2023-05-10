@@ -2,7 +2,7 @@
  * @Author: 李鹏玺 2899952565@qq.com
  * @Date: 2023-05-06 11:02:37
  * @LastEditors: 李鹏玺 2899952565@qq.com
- * @LastEditTime: 2023-05-10 18:25:54
+ * @LastEditTime: 2023-05-10 23:11:55
  * @FilePath: /example/webpack/webpack-achieve/webpack.js
  * @Description: 手写 webpack
  */
@@ -73,10 +73,7 @@ class Compilation {
 
   build(callback) {
     // 入口文件：对单文件和多文件统一格式
-    let { entry: entryFile } = this.options;
-    if (typeof entryFile === "string") {
-      entryFile = { main: entryFile };
-    }
+    let entryFile = typeof this.options.enter === "string" ? { main: this.options.enter } : this.options.enter
 
     for (let entryName in entryFile) {
       let entryFilePath = path.posix.resolve(baseDir, entryFile[entryName]);
@@ -200,12 +197,12 @@ function getSource(chunk) {
      (() => {
       var modules = {
         ${chunk.modules.map(
-          (module) => `
+    (module) => `
           "${module.id}": (module) => {
             ${module._source}
           }
         `
-        )}  
+  )}  
       };
       var cache = {};
       function require(moduleId) {
