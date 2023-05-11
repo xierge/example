@@ -47,6 +47,11 @@ class Compiler {
   }
 }
 
+/**
+ * @return {string} filePath 文件路径
+ * @description:
+ */
+// 获取文件的完整的路径
 function tryExtensions(modluePath, extensions) {
   if (fs.existsSync(modluePath)) {
     return;
