@@ -306,3 +306,5 @@ module.exports = function webpack(webpackOptions) {
 
   return compiler;
 };
+
+// webpack => 创建 Compiler 实例 => 调用 run 方法 => 创建 Compilation 实例 => 调用 build 方法 => 调用 buildModule 方法 => 调用 onCompiled 方法 => 输出编译后的文件
