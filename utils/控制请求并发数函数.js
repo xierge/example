@@ -2,7 +2,7 @@
  * @Author       : 李鹏玺 2899952565@qq.com
  * @Date         : 2023-05-22 10:42:24
  * @LastEditors  : 李鹏玺 2899952565@qq.com
- * @LastEditTime : 2023-05-22 16:56:26
+ * @LastEditTime : 2023-05-22 17:20:00
  * @FilePath     : /utils/控制请求并发数函数.js
  * @Description  : 控制请求并发数函数
  */
@@ -34,39 +34,36 @@ const reqList = [
  */
 function limitReq(requestList = [], limit = 3, callback) {
   console.time("start");
-  const queue = [];
+  const queue = requestList.splice(0, limit);
   const success = [];
   const fail = [];
-  for (let i = 0; i < limit; i++) {
-    createTask();
+
+  walker(queue);
+
+  function walker(tasks) {
+    tasks.forEach((item, index) => {
+      item()
+        .then((res) => {
+          success.push(res);
+        })
+        .catch((err) => {
+          fail.push(err);
+        })
+        .finally(() => {
+          queue.splice(index, 1);
+          if (requestList.length) {
+            walker([createTask()] || []);
+          } else {
+            queue.length === 0 && callback && callback(success, fail);
+          }
+        });
+    });
   }
-  walker();
-  function walker() {
-    queue
-      .filter((q) => q.isStart === false)
-      .forEach((item, index) => {
-        item
-          .then((res) => {
-            success.push(res);
-          })
-          .catch((err) => {
-            fail.push(err);
-          })
-          .finally(() => {
-            queue.splice(index, 1);
-            queue.forEach((q) => (q.isStart = true));
-            if (requestList.length) {
-              createTask();
-              walker();
-            } else {
-              queue.length === 0 && callback && callback(success, fail);
-            }
-          });
-      });
-  }
+
   function createTask() {
-    requestList.length &&
-      queue.push({ isStart: false, req: requestList.shift() });
+    return (
+      requestList.length && queue.push(requestList.shift()) && queue[limit - 1]
+    );
   }
 }
 
