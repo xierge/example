@@ -7,7 +7,7 @@ const { WebapckRunPlugin, WebpackDonePlugin } = require("./plugin");
  * @type {Configuration} webapck配置相关提示
  */
 module.exports = {
-  entry: "./src/index.js",
+  entry: "../src/index.js",
   output: {
     filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
