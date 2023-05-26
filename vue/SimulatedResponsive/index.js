@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-05-23 18:16:31
  * @LastEditors: 李鹏玺 2899952565@qq.com
- * @LastEditTime: 2023-05-26 16:36:43
+ * @LastEditTime: 2023-05-26 19:07:58
  * @FilePath: /example/vue/SimulatedResponsive/index.js
  * @description:
  */
@@ -51,7 +51,8 @@ class Compiler {
   constructor(vm) {
     this.el = vm.$el;
     this.options = vm.$options;
-
+    this.vm = vm;
+    console.log(this);
     this.compile(this.el);
   }
 
@@ -89,6 +90,7 @@ class Compiler {
 
   textUpdater(node, value, key) {
     node.textContent = value;
+    new Watcher(this.vm, key, (value) => (node.textContent = value));
   }
 
   isTextNode(node) {
@@ -117,14 +119,19 @@ class Observer {
 
   defineReactive(obj, key, val) {
     this.walk(val);
+    let dep = new Dep();
+    const self = this;
     Object.defineProperty(obj, key, {
       enumerable: true,
       configurable: true,
       get() {
+        Dep.target && dep.addSub(Dep.target);
         return val;
       },
       set(value) {
         val = value;
+        dep.notify();
+        self.walk(val);
       },
     });
   }
@@ -146,4 +153,18 @@ class Dep {
   }
 }
 
-class Watcher {}
+class Watcher {
+  constructor(vm, key, callback) {
+    this.vm = vm;
+    this.key = key;
+    this.callback = callback;
+    Dep.target = this;
+    this.oldValue = this.vm[key];
+    Dep.target = null;
+  }
+
+  update() {
+    let newValue = this.vm[this.key];
+    this.callback(newValue);
+  }
+}
