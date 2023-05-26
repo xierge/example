@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-05-23 18:16:31
  * @LastEditors: 李鹏玺 2899952565@qq.com
- * @LastEditTime: 2023-05-26 19:07:58
+ * @LastEditTime: 2023-05-26 19:10:22
  * @FilePath: /example/vue/SimulatedResponsive/index.js
  * @description:
  */
@@ -52,7 +52,6 @@ class Compiler {
     this.el = vm.$el;
     this.options = vm.$options;
     this.vm = vm;
-    console.log(this);
     this.compile(this.el);
   }
 
@@ -75,6 +74,7 @@ class Compiler {
     if (reg.test(node.textContent)) {
       let value = RegExp.$1.trim();
       node.textContent = this.options.data[value];
+      new Watcher(this.vm, value, (newValue) => (node.textContent = newValue));
     }
   }
   compileElement(node) {
