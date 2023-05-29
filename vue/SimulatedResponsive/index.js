@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-05-23 18:16:31
  * @LastEditors: 李鹏玺 2899952565@qq.com
- * @LastEditTime: 2023-05-26 19:10:22
+ * @LastEditTime: 2023-05-29 13:57:58
  * @FilePath: /example/vue/SimulatedResponsive/index.js
  * @description:
  */
@@ -91,6 +91,15 @@ class Compiler {
   textUpdater(node, value, key) {
     node.textContent = value;
     new Watcher(this.vm, key, (value) => (node.textContent = value));
+  }
+
+  modelUpdater(node, value, key) {
+    node.value = value;
+    new Watcher(this.vm, key, (value) => (node.value = value));
+    node.addEventListener("input", (e) => {
+      this.vm[key] = e.target.value;
+      console.log(this.vm[key]);
+    });
   }
 
   isTextNode(node) {
