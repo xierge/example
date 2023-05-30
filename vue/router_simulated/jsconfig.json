@@ -1,0 +1,26 @@
+/*
+ * @Date: 2023-05-30 16:29:13
+ * @LastEditors: 李鹏玺 2899952565@qq.com
+ * @LastEditTime: 2023-05-30 16:30:24
+ * @FilePath: /example/vue/router_simulated/jsconfig.json
+ * @description: 
+ */
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "baseUrl": "./",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
+  }
+}
