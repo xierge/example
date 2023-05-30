@@ -1,0 +1,35 @@
+{
+  "name": "demo_ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "typings": "types/index.d.ts",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./dist/main.js",
+        "default": "./dist/main.js"
+      },
+      "require": "./dist/main.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/*": "./dist/*",
+    "./types/*": "./types/*",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "rollup": "^3.23.0",
+    "rollup-plugin-serve": "^2.0.2",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "typescript": "^5.0.4",
+    "webpack": "^5.84.1",
+    "webpack-cli": "^5.1.1"
+  }
+}
