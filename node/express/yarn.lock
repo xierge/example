@@ -214,6 +214,11 @@ jsprim@^1.2.2:
     json-schema "0.4.0"
     verror "1.10.0"
 
+lx-js-tools@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/lx-js-tools/-/lx-js-tools-1.0.2.tgz#8d69086bada5635b1d50dc30957726a4a3a16598"
+  integrity sha512-DzZ6HrvNkh5u2pCmlKIqb7bCpasQj7PWJpbO6esKJ6H1TeB4wUNBKTqD3YrCce/J82L8GEtQA7ViNY8WvqoWcA==
+
 mime-db@1.52.0:
   version "1.52.0"
   resolved "https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz#bbabcdc02859f4987301c856e3387ce5ec43bf70"
