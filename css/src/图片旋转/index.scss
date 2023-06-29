@@ -1,0 +1,47 @@
+
+$wrap: 400px;
+$item: 100px;
+
+.all{
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .wrap{
+        border: 1px solid red;
+        width: $wrap;
+        height: $wrap;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 4s infinite ease;
+        .item{
+            width: $item;
+            height: $item;
+            border-radius: 50%;
+            border: 1px solid green;
+            position: absolute;
+            top: 0;
+            left: calc(($wrap - $item )/2);
+            transform-origin: center 200px;
+        }
+
+        @for $i from 1 to 6{
+            .item#{$i} {
+                transform: rotate($i*60deg);
+            }
+        }
+    }
+
+
+    @keyframes rotate {
+        from{
+            transform: rotate(0deg);
+        }to{
+            transform: rotate(720deg);
+        }
+    }
+}
