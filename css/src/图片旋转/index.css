@@ -7,6 +7,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #000;
+  color: #fff;
 }
 .all .wrap {
   border: 1px solid red;
@@ -14,7 +16,11 @@
   height: 400px;
   border-radius: 50%;
   position: relative;
-  animation: rotate 4s infinite ease;
+}
+.all .wrap .show {
+  width: 100px;
+  height: 100px;
+  position: absolute;
 }
 .all .wrap .item {
   width: 100px;
@@ -25,6 +31,12 @@
   top: 0;
   left: 150px;
   transform-origin: center 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.all .wrap .item0 {
+  transform: rotate(0deg);
 }
 .all .wrap .item1 {
   transform: rotate(60deg);
@@ -40,14 +52,6 @@
 }
 .all .wrap .item5 {
   transform: rotate(300deg);
-}
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(720deg);
-  }
 }
 
 /*# sourceMappingURL=index.css.map */

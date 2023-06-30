@@ -11,13 +11,22 @@ $item: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #000;
+    color: #fff;
+
+   
     .wrap{
         border: 1px solid red;
         width: $wrap;
         height: $wrap;
         border-radius: 50%;
         position: relative;
-        animation: rotate 4s infinite ease;
+        .show{
+            width: $item;
+            height: $item;
+            position: absolute;
+
+        }
         .item{
             width: $item;
             height: $item;
@@ -26,22 +35,17 @@ $item: 100px;
             position: absolute;
             top: 0;
             left: calc(($wrap - $item )/2);
-            transform-origin: center 200px;
+            transform-origin: center calc($wrap/2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        @for $i from 1 to 6{
+        @for $i from 0 to 6{
             .item#{$i} {
                 transform: rotate($i*60deg);
             }
         }
     }
-
-
-    @keyframes rotate {
-        from{
-            transform: rotate(0deg);
-        }to{
-            transform: rotate(720deg);
-        }
-    }
+  
 }
