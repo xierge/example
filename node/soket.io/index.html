@@ -1,0 +1,24 @@
+<!--
+ * @Date: 2023-07-16 17:59:35
+ * @LastEditors: Carlos 2899952565@qq.com
+ * @LastEditTime: 2023-07-17 00:22:43
+ * @FilePath: /example/node/soket.io/index.html
+ * @description: 
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div>聊天室</div>
+  </body>
+  <script>
+    var socket = io();
+    socket.emit("chat message", "你好啊 我是喜子1");
+  </script>
+</html>
