@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.4.0",
+    "lx-js-tools": "^1.0.2",
     "request": "^2.88.2"
   }
 }
