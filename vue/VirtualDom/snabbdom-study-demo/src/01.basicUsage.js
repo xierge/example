@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-17 15:00:04
  * @LastEditors: Carlos 2899952565@qq.com
- * @LastEditTime: 2023-07-17 18:28:55
+ * @LastEditTime: 2023-07-18 18:46:04
  * @FilePath: /example/vue/VirtualDom/snabbdom-study-demo/src/01.basicUsage.js
  * @description: snabbdom 的基本使用
  */
@@ -20,8 +20,7 @@ import {
   eventListenersModule,
 } from "snabbdom";
 import { h } from "./h";
-
-console.log(classModule);
+debugger
 // 初始化 patch 函数，主要是对h的第二个参数 class，style，on，props 权限控制
 const patch = init([
   classModule,
@@ -69,3 +68,5 @@ const container = document.getElementById("container");
 
 // 将 vnode 渲染到页面上
 patch(container, vnode);
+
+console.log(container.class)

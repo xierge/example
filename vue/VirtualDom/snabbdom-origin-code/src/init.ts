@@ -286,6 +286,7 @@ export function init(
     }
   }
 
+  // 根据新旧节点对比 更新
   function updateChildren(
     parentElm: Node,
     oldCh: VNode[],
@@ -384,23 +385,30 @@ export function init(
     }
   }
 
+  // 对比新旧节点 
   function patchVnode(
     oldVnode: VNode,
     vnode: VNode,
     insertedVnodeQueue: VNodeQueue
   ) {
+    // data 中 hook.prepatch 执行
     const hook = vnode.data?.hook;
     hook?.prepatch?.(oldVnode, vnode);
+    // 新节点 elm 赋值
     const elm = (vnode.elm = oldVnode.elm)!;
+    // 节点完全相同
     if (oldVnode === vnode) return;
+    // 新旧节点的 data.text 不相同
     if (
       vnode.data !== undefined ||
       (isDef(vnode.text) && vnode.text !== oldVnode.text)
     ) {
       vnode.data ??= {};
       oldVnode.data ??= {};
-      for (let i = 0; i < cbs.update.length; ++i)
+      for (let i = 0; i < cbs.update.length; ++i) {
         cbs.update[i](oldVnode, vnode);
+      }
+      // 新节点 data 中 hook.update 执行
       vnode.data?.hook?.update?.(oldVnode, vnode);
     }
     const oldCh = oldVnode.children as VNode[];
@@ -443,9 +451,11 @@ export function init(
       oldVnode = emptyDocumentFragmentAt(oldVnode);
     }
 
+    // 通过 key sel 等判断是否是同一个节点 
     if (sameVnode(oldVnode, vnode)) {
       patchVnode(oldVnode, vnode, insertedVnodeQueue);
     } else {
+      //不同节点的处理
       elm = oldVnode.elm!;
       parent = api.parentNode(elm) as Node;
 
