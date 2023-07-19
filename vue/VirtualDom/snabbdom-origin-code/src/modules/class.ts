@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-17 14:34:27
  * @LastEditors: Carlos 2899952565@qq.com
- * @LastEditTime: 2023-07-18 19:13:40
+ * @LastEditTime: 2023-07-20 01:40:11
  * @FilePath: /example/vue/VirtualDom/snabbdom-origin-code/src/modules/class.ts
  * @description: 
  */
@@ -21,7 +21,7 @@ function updateClass(oldVnode: VNode, vnode: VNode): void {
   oldClass ??= {};
   klass ??= {};
 
-    // 旧节点 class = true 而 新节点不存在的class， dom 上 该 class 移除 
+  // 旧节点 class = true 而 新节点不存在的class， dom 上 该 class 移除 
   for (name in oldClass) {
     if (oldClass[name] && !Object.prototype.hasOwnProperty.call(klass, name)) {
       // was `true` and now not provided
