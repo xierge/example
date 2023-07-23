@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-17 15:00:04
  * @LastEditors: Carlos 2899952565@qq.com
- * @LastEditTime: 2023-07-18 18:46:04
+ * @LastEditTime: 2023-07-20 01:40:31
  * @FilePath: /example/vue/VirtualDom/snabbdom-study-demo/src/01.basicUsage.js
  * @description: snabbdom 的基本使用
  */

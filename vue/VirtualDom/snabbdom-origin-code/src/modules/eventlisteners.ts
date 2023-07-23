@@ -5,8 +5,8 @@ type Listener<T> = (this: VNode, ev: T, vnode: VNode) => void;
 
 export type On = {
   [N in keyof HTMLElementEventMap]?:
-    | Listener<HTMLElementEventMap[N]>
-    | Array<Listener<HTMLElementEventMap[N]>>;
+  | Listener<HTMLElementEventMap[N]>
+  | Array<Listener<HTMLElementEventMap[N]>>;
 } & {
   [event: string]: Listener<any> | Array<Listener<any>>;
 };
@@ -48,29 +48,31 @@ function createListener() {
 }
 
 function updateEventListeners(oldVnode: VNode, vnode?: VNode): void {
+  // 获取旧节点的 data.on  listener  真实DOM
   const oldOn = (oldVnode.data as VNodeData).on;
   const oldListener = (oldVnode as any).listener;
   const oldElm: Element = oldVnode.elm as Element;
+  // 获取新节点的 data.on  真实DOM
   const on = vnode && (vnode.data as VNodeData).on;
   const elm: Element = (vnode && vnode.elm) as Element;
   let name: string;
 
-  // optimization for reused immutable handlers
+  // 如果新旧节点的 on 相同 直接结束函数
   if (oldOn === on) {
     return;
   }
 
-  // remove existing listeners which no longer used
+  // 如果旧节点的事件存在，与新节点对比 remove 一些不存在的事件监听
   if (oldOn && oldListener) {
-    // if element changed or deleted we remove all existing listeners unconditionally
+    // 如果新节点不存在事件的监听，remove 旧节点的所有事件监听
     if (!on) {
       for (name in oldOn) {
-        // remove listener if element was changed or existing listeners removed
+        // remove 所有的事件监听
         oldElm.removeEventListener(name, oldListener, false);
       }
     } else {
       for (name in oldOn) {
-        // remove listener if existing listener removed
+        // 如果新节点不存在此事件监听 remove
         if (!on[name]) {
           oldElm.removeEventListener(name, oldListener, false);
         }
@@ -78,7 +80,7 @@ function updateEventListeners(oldVnode: VNode, vnode?: VNode): void {
     }
   }
 
-  // add new listeners which has not already attached
+  // 新节点的存在事件监听
   if (on) {
     // reuse existing listener or create new
     const listener = ((vnode as any).listener =
@@ -86,15 +88,14 @@ function updateEventListeners(oldVnode: VNode, vnode?: VNode): void {
     // update vnode for listener
     listener.vnode = vnode;
 
-    // if element changed or added we add all needed listeners unconditionally
+    // 如果旧节点不存在事件监听  add data.on 的所有事件 
     if (!oldOn) {
       for (name in on) {
-        // add listener if element was changed or new listeners added
         elm.addEventListener(name, listener, false);
       }
     } else {
       for (name in on) {
-        // add listener if new listener added
+        // 旧节点没有的事件监听，add 事件监听
         if (!oldOn[name]) {
           elm.addEventListener(name, listener, false);
         }

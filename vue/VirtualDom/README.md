@@ -197,4 +197,191 @@ export function h(sel: any, b?: any, c?: any): VNode {
 }
 ```
 
+#### classModule
+
+```
+// class 结构
+//	{
+//		active: true,
+//		focus: false,
+//	}
+
+function updateClass(oldVnode: VNode, vnode: VNode): void {
+  let cur: any;
+  let name: string;
+  const elm: Element = vnode.elm as Element;
+  // 获取新旧节点 data 中的 class
+  let oldClass = (oldVnode.data as VNodeData).class;
+  let klass = (vnode.data as VNodeData).class;
+
+	// 两者都不存在 class  结束函数
+  if (!oldClass && !klass) return;
+  // 两者 class 相同  结束函数
+  if (oldClass === klass) return;
+  oldClass ??= {};
+  klass ??= {};
+
+    // 旧节点 class = true 而 新节点不存在的class， dom 上 该 class 移除 
+  for (name in oldClass) {
+    if (oldClass[name] && !Object.prototype.hasOwnProperty.call(klass, name)) {
+      // was `true` and now not provided
+      elm.classList.remove(name);
+    }
+  }
+  // 新节点有的 class 旧节点没有就在 dom 上添加
+  for (name in klass) {
+    cur = klass[name];
+    if (cur !== oldClass[name]) {
+      (elm.classList as any)[cur ? "add" : "remove"](name);
+    }
+  }
+}
+
+export const classModule: Module = { create: updateClass, update: updateClass };
+```
+
+
+
+#### propsModule
+
+```
+// props 属性只会增加
+function updateProps(oldVnode: VNode, vnode: VNode): void {
+  let key: string;
+  let cur: any;
+  let old: any;
+  const elm = vnode.elm;
+  let oldProps = (oldVnode.data as VNodeData).props;
+  let props = (vnode.data as VNodeData).props;
+
+  if (!oldProps && !props) return;
+  if (oldProps === props) return;
+  oldProps = oldProps || {};
+  props = props || {};
+
+  for (key in props) {
+    cur = props[key];
+    old = oldProps[key];
+    if (old !== cur && (key !== "value" || (elm as any)[key] !== cur)) {
+      (elm as any)[key] = cur;
+    }
+  }
+}
+
+export const propsModule: Module = { create: updateProps, update: updateProps };
+```
+
+
+
+#### eventListenersModule
+
+```
+function updateEventListeners(oldVnode: VNode, vnode?: VNode): void {
+  // 获取旧节点的 data.on  listener  真实DOM
+  const oldOn = (oldVnode.data as VNodeData).on;
+  const oldListener = (oldVnode as any).listener;
+  const oldElm: Element = oldVnode.elm as Element;
+  // 获取新节点的 data.on  真实DOM
+  const on = vnode && (vnode.data as VNodeData).on;
+  const elm: Element = (vnode && vnode.elm) as Element;
+  let name: string;
+
+  // 如果新旧节点的 on 相同 直接结束函数
+  if (oldOn === on) {
+    return;
+  }
+
+  // 如果旧节点的事件存在，与新节点对比 remove 一些不存在的事件监听
+  if (oldOn && oldListener) {
+    // 如果新节点不存在事件的监听，remove 旧节点的所有事件监听
+    if (!on) {
+      for (name in oldOn) {
+        // remove 所有的事件监听
+        oldElm.removeEventListener(name, oldListener, false);
+      }
+    } else {
+      for (name in oldOn) {
+        // 如果新节点不存在此事件监听 remove
+        if (!on[name]) {
+          oldElm.removeEventListener(name, oldListener, false);
+        }
+      }
+    }
+  }
+
+  // 新节点的存在事件监听
+  if (on) {
+    // reuse existing listener or create new
+    const listener = ((vnode as any).listener =
+      (oldVnode as any).listener || createListener());
+    // update vnode for listener
+    listener.vnode = vnode;
+
+    // 如果旧节点不存在事件监听  add data.on 的所有事件 
+    if (!oldOn) {
+      for (name in on) {
+        elm.addEventListener(name, listener, false);
+      }
+    } else {
+      for (name in on) {
+        // 旧节点没有的事件监听，add 事件监听
+        if (!oldOn[name]) {
+          elm.addEventListener(name, listener, false);
+        }
+      }
+    }
+  }
+}
+```
+
+
+
+#### init
+
+
+
 #### patch
+
+```
+function patch(
+    oldVnode: VNode | Element | DocumentFragment,
+    vnode: VNode
+  ): VNode {
+    let i: number, elm: Node, parent: Node;
+    const insertedVnodeQueue: VNodeQueue = [];
+
+    // 执行 pre 钩子函数
+    for (i = 0; i < cbs.pre.length; ++i) cbs.pre[i]();
+
+    // 判断 oldVnode 是否是真实 DOM
+    if (isElement(api, oldVnode)) {
+      // 将真实 DOM 转换成 vnode 对象
+      oldVnode = emptyNodeAt(oldVnode);
+    } else if (isDocumentFragment(api, oldVnode)) {
+      oldVnode = emptyDocumentFragmentAt(oldVnode);
+    }
+
+    // 通过 key sel 等判断是否是同一个节点 
+    if (sameVnode(oldVnode, vnode)) {
+      patchVnode(oldVnode, vnode, insertedVnodeQueue);
+    } else {
+      //不同节点的处理
+      elm = oldVnode.elm!;
+      parent = api.parentNode(elm) as Node;
+
+      createElm(vnode, insertedVnodeQueue);
+
+      if (parent !== null) {
+        api.insertBefore(parent, vnode.elm!, api.nextSibling(elm));
+        removeVnodes(parent, [oldVnode], 0, 0);
+      }
+    }
+
+    for (i = 0; i < insertedVnodeQueue.length; ++i) {
+      insertedVnodeQueue[i].data!.hook!.insert!(insertedVnodeQueue[i]);
+    }
+    for (i = 0; i < cbs.post.length; ++i) cbs.post[i]();
+    return vnode;
+  };
+```
+
