@@ -1,0 +1,107 @@
+<!--
+ * @Date: 2023-07-19 11:58:30
+ * @LastEditors: Carlos 2899952565@qq.com
+ * @LastEditTime: 2023-07-19 13:18:45
+ * @FilePath: /example/index.html
+ * @description: 
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      .header {
+        position: sticky;
+        top: 0;
+        display: flex;
+        background-color: #fff;
+        padding: 20px;
+      }
+      .header .item {
+        flex: 1;
+        text-align: center;
+      }
+      .header .item.active {
+        color: red;
+      }
+      .cate {
+        background-color: skyblue;
+        height: 400px;
+        margin-bottom: 10px;
+      }
+      .detail {
+        background-color: skyblue;
+        height: 300px;
+        margin-bottom: 10px;
+      }
+
+      .comment {
+        background-color: skyblue;
+        height: 800px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="all">
+      <div class="header">
+        <div class="item active" onclick="()=>handleClick(0)">商品</div>
+        <div class="item">详情</div>
+        <div class="item">评论</div>
+      </div>
+      <div class="content">
+        <div class="cate">商品</div>
+        <div class="detail">详情</div>
+        <div class="comment">评论</div>
+      </div>
+    </div>
+  </body>
+  <script>
+    const content = document.querySelector(".content");
+    const header = document.querySelector(".header");
+    // 滚动监听
+    window.addEventListener("scroll", () => {
+      const activeIndex = getIndexByArrage(scrollY, heightList);
+      addClass(activeIndex);
+    });
+
+    // 获取 商品&详情&评论 距离滚动出现的高度
+    const heightList = [...content.children].map(
+      (item) => item.offsetTop - header.offsetHeight
+    );
+
+    // 循环绑定 click 事件
+    [...header.children].forEach((dom, index) =>
+      dom.addEventListener("click", () => {
+        window.scrollTo(0, heightList[index]);
+        addClass(index);
+      })
+    );
+
+    // 根据高度获取 activeIndex
+    function getIndexByArrage(value, arr) {
+      let activeIndex;
+      arr.forEach((item, index) => {
+        if (!activeIndex) {
+          if (item <= value && arr[index + 1] > value) {
+            activeIndex = index;
+          } else if (item <= value && index == arr.length - 1) {
+            activeIndex = index;
+          }
+        }
+      });
+      return activeIndex;
+    }
+
+    // 设置 activeIndex
+    function addClass(index) {
+      [...header.children].forEach((elm) => elm.classList.remove("active"));
+      header.children[index].classList.add("active");
+    }
+  </script>
+</html>
