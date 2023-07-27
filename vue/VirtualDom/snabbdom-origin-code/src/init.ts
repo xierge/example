@@ -457,12 +457,15 @@ export function init(
     } else {
       //不同节点的处理
       elm = oldVnode.elm!;
+      // 获取父节点
       parent = api.parentNode(elm) as Node;
 
       createElm(vnode, insertedVnodeQueue);
 
       if (parent !== null) {
+        // 插入新的 dom 到指定位置
         api.insertBefore(parent, vnode.elm!, api.nextSibling(elm));
+        // 移除旧的节点
         removeVnodes(parent, [oldVnode], 0, 0);
       }
     }

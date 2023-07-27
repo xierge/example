@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-17 15:00:04
  * @LastEditors: Carlos 2899952565@qq.com
- * @LastEditTime: 2023-07-20 01:40:31
+ * @LastEditTime: 2023-07-24 00:29:18
  * @FilePath: /example/vue/VirtualDom/snabbdom-study-demo/src/01.basicUsage.js
  * @description: snabbdom 的基本使用
  */
@@ -30,7 +30,7 @@ const patch = init([
 ]);
 
 // 通过 h 函数生成 vnode
-const vnode = h(
+const vnode1 = h(
   "h1#id.class",
   {
     style: {
@@ -65,8 +65,43 @@ const vnode = h(
 );
 
 const container = document.getElementById("container");
+const vnode2 = h(
+  "h1#id.class",
+  {
+    style: {
+      color: "red",
+    },
+    on: {
+      click: () => console.log("click"),
+    },
+    props: {
+      lover: "lsq",
+    },
+    class: { lx: true },
+  },
+  [
+    h(
+      "h1#id.class",
+      {
+        style: {
+          color: "red",
+        },
+        on: {
+          click: () => console.log("click"),
+        },
+        props: {
+          lover: "lsq",
+        },
+        class: { lx: true },
+      },
+      "hello lsq"
+    ),
+  ]
+);
 
 // 将 vnode 渲染到页面上
-patch(container, vnode);
+patch(container, vnode1);
 
-console.log(container.class)
+setTimeout(() => {
+  patch(vnode1, vnode2)
+}, 2000)
