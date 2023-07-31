@@ -1,7 +1,14 @@
 <!--
+ * @Date: 2023-07-31 12:03:07
+ * @LastEditors: Carlos 2899952565@qq.com
+ * @LastEditTime: 2023-07-31 12:11:07
+ * @FilePath: /example/demos/菜单和滚动双向绑定.html
+ * @description: 
+-->
+<!--
  * @Date: 2023-07-19 11:58:30
  * @LastEditors: Carlos 2899952565@qq.com
- * @LastEditTime: 2023-07-31 01:02:06
+ * @LastEditTime: 2023-07-31 12:09:13
  * @FilePath: /example/index.html
  * @description: 
 -->
@@ -55,7 +62,7 @@
         <div class="item">评论</div>
       </div>
       <div class="content">
-        <div class="cate"><button id="upload">选择所有文件夹</button></div>
+        <div class="cate">商品</div>
         <div class="detail">详情</div>
         <div class="comment">评论</div>
       </div>
@@ -103,54 +110,5 @@
       [...header.children].forEach((elm) => elm.classList.remove("active"));
       header.children[index].classList.add("active");
     }
-
-    // showDirectoryPicker 方法的封装
-    let id = 0;
-    async function selectFiles() {
-      const fileReflect = Object.create(null);
-      const dirHandle = await showDirectoryPicker();
-      fileReflect[0] = { ...dirHandle, id };
-      if (dirHandle.kind === "directory") {
-        getChild(dirHandle, 0, fileReflect);
-      }
-      id = 0;
-      return fileReflect[0].children;
-    }
-
-    async function getChild(dirHandle, pid, fileReflect) {
-      for await (const entry of dirHandle.values()) {
-        id++;
-        fileReflect[id] = entry;
-        if (fileReflect[pid].children) {
-          fileReflect[pid].children.push(entry);
-        } else {
-          fileReflect[pid].children = [entry];
-        }
-        if (entry.kind === "directory") {
-          await getChild(entry, id, fileReflect);
-        } else {
-          return await getFile(entry);
-        }
-      }
-    }
-
-    async function getFile(entry) {
-      const file = await entry.getFile();
-      const result = await fileRead(file);
-      return result;
-    }
-
-    async function fileRead(file) {
-      const fileRead = new FileReader();
-      fileRead.readAsText(file);
-      return new Promise((resolve) => {
-        fileRead.onload = function (e) {
-          resolve(e.target.result);
-        };
-      });
-    }
-
-    const uploadBtn = document.querySelector("#upload");
-    uploadBtn.addEventListener("click", selectFiles);
   </script>
 </html>

@@ -78,3 +78,9 @@ function loggingIdentity<T extends Lengthwise>(arg: T): T {
     return arg;
 }
 loggingIdentity([1,2])
+
+
+const oMap = new Map<string,string>()
+oMap.set("username","xizige")
+console.log(oMap)
+

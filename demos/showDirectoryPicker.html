@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="upload">选择所有文件夹</button>
+</body>
+<script>
+        // showDirectoryPicker 方法的封装
+        let id = 0;
+    async function selectFiles() {
+      const fileReflect = Object.create(null);
+      const dirHandle = await showDirectoryPicker();
+      fileReflect[0] = { ...dirHandle, id };
+      if (dirHandle.kind === "directory") {
+       await getChild(dirHandle, 0, fileReflect);
+      }
+      console.log(fileReflect[0].children)
+      return fileReflect[0].children;
+    }
+
+    async function getChild(dirHandle, pid, fileReflect) {
+      for await (const entry of dirHandle.values()) {
+        id++;
+        fileReflect[id] = entry;
+        if (fileReflect[pid].children) {
+          fileReflect[pid].children.push(entry);
+        } else {
+          fileReflect[pid].children = [entry];
+        }
+        if (entry.kind === "directory") {
+          await getChild(entry, id, fileReflect);
+        } 
+      }
+    }
+
+    async function getFile(entry) {
+      const file = await entry.getFile();
+      const result = await fileRead(file);
+      return result;
+    }
+
+    async function fileRead(file) {
+      const fileRead = new FileReader();
+      fileRead.readAsText(file);
+      return new Promise((resolve) => {
+        fileRead.onload = function (e) {
+          resolve(e.target.result);
+        };
+      });
+    }
+
+    const uploadBtn = document.querySelector("#upload");
+    uploadBtn.addEventListener("click", selectFiles);
+</script>
+</html>
