@@ -1,24 +1,31 @@
+<!--
+ * @Date: 2023-07-31 12:10:54
+ * @LastEditors: Carlos 2899952565@qq.com
+ * @LastEditTime: 2023-08-02 17:55:32
+ * @FilePath: /example/demos/showDirectoryPicker.html
+ * @description: 
+-->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>showDirectoryPicker</title>
+  </head>
+  <body>
     <button id="upload">选择所有文件夹</button>
-</body>
-<script>
-        // showDirectoryPicker 方法的封装
-        let id = 0;
+  </body>
+  <script>
+    // showDirectoryPicker 方法的封装
+    let id = 0;
     async function selectFiles() {
       const fileReflect = Object.create(null);
       const dirHandle = await showDirectoryPicker();
       fileReflect[0] = { ...dirHandle, id };
       if (dirHandle.kind === "directory") {
-       await getChild(dirHandle, 0, fileReflect);
+        await getChild(dirHandle, 0, fileReflect);
       }
-      console.log(fileReflect[0].children)
+      console.log(fileReflect[0].children);
       return fileReflect[0].children;
     }
 
@@ -33,7 +40,7 @@
         }
         if (entry.kind === "directory") {
           await getChild(entry, id, fileReflect);
-        } 
+        }
       }
     }
 
@@ -55,5 +62,5 @@
 
     const uploadBtn = document.querySelector("#upload");
     uploadBtn.addEventListener("click", selectFiles);
-</script>
+  </script>
 </html>
