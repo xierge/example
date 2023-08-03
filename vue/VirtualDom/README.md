@@ -336,10 +336,6 @@ function updateEventListeners(oldVnode: VNode, vnode?: VNode): void {
 
 
 
-#### init
-
-
-
 #### patch
 
 ```
@@ -451,6 +447,126 @@ function createElm(vnode: VNode, insertedVnodeQueue: VNodeQueue): Node {
     vnode.elm = api.createTextNode(vnode.text!);
   }
   return vnode.elm;
+}
+```
+
+
+
+#### updateChildren(diff)
+
+```javascript
+// 根据新旧节点 children 对比更新
+function updateChildren(
+  parentElm: Node,
+  oldCh: VNode[],
+  newCh: VNode[],
+  insertedVnodeQueue: VNodeQueue
+) {
+
+  let oldStartIdx = 0;
+  let newStartIdx = 0;
+  let oldEndIdx = oldCh.length - 1;
+  let oldStartVnode = oldCh[0];
+  let oldEndVnode = oldCh[oldEndIdx];
+  let newEndIdx = newCh.length - 1;
+  let newStartVnode = newCh[0];
+  let newEndVnode = newCh[newEndIdx];
+  let oldKeyToIdx: KeyToIndexMap | undefined;
+  let idxInOld: number;
+  let elmToMove: VNode;
+  let before: any;
+
+  while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+    // 过滤 children 为空的情况
+    if (oldStartVnode == null) {
+      oldStartVnode = oldCh[++oldStartIdx]; // Vnode might have been moved left
+    } else if (oldEndVnode == null) {
+      oldEndVnode = oldCh[--oldEndIdx];
+    } else if (newStartVnode == null) {
+      newStartVnode = newCh[++newStartIdx];
+    } else if (newEndVnode == null) {
+      newEndVnode = newCh[--newEndIdx];
+    // 比较新旧节点的头是否为同一个节点
+    } else if (sameVnode(oldStartVnode, newStartVnode)) {
+      patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
+      oldStartVnode = oldCh[++oldStartIdx];
+      newStartVnode = newCh[++newStartIdx];
+    // 比较新旧节点的尾是否为同一个节点
+    } else if (sameVnode(oldEndVnode, newEndVnode)) {
+      patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
+      oldEndVnode = oldCh[--oldEndIdx];
+      newEndVnode = newCh[--newEndIdx];
+    // 比较新节点的尾和旧节点的头是否为同一个节点
+    } else if (sameVnode(oldStartVnode, newEndVnode)) {
+      // Vnode moved right
+      patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
+      api.insertBefore(
+        parentElm,
+        oldStartVnode.elm!,
+        api.nextSibling(oldEndVnode.elm!)
+      );
+      oldStartVnode = oldCh[++oldStartIdx];
+      newEndVnode = newCh[--newEndIdx];
+    // 比较新节点的头和旧节点的尾是否为同一个节点
+    } else if (sameVnode(oldEndVnode, newStartVnode)) {
+      // Vnode moved left
+      patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
+      api.insertBefore(parentElm, oldEndVnode.elm!, oldStartVnode.elm!);
+      oldEndVnode = oldCh[--oldEndIdx];
+      newStartVnode = newCh[++newStartIdx];
+    } else {
+      // 以上多种条件都不成立
+      if (oldKeyToIdx === undefined) {
+        // 生成 key 与 index 的映射
+        oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
+      }
+      idxInOld = oldKeyToIdx[newStartVnode.key as string];
+      // 新 children 的 key 在老节点中没有
+      if (isUndef(idxInOld)) {
+        // 插入元素
+        api.insertBefore(
+          parentElm,
+          createElm(newStartVnode, insertedVnodeQueue),
+          oldStartVnode.elm!
+        );
+      } else {
+        // 获取旧 children 与此 key 相同的节点
+        elmToMove = oldCh[idxInOld];
+        
+        // 两者 sel(tag||id||class) 不同
+        if (elmToMove.sel !== newStartVnode.sel) {
+          api.insertBefore(
+            parentElm,
+            createElm(newStartVnode, insertedVnodeQueue),
+            oldStartVnode.elm!
+          );
+        } else {
+          patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
+          oldCh[idxInOld] = undefined as any;
+          api.insertBefore(parentElm, elmToMove.elm!, oldStartVnode.elm!);
+        }
+      }
+      newStartVnode = newCh[++newStartIdx];
+    }
+  }
+
+  // 新 children 数量大于旧 children
+  if (newStartIdx <= newEndIdx) {
+    before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
+    addVnodes(
+      parentElm,
+      before,
+      newCh,
+      newStartIdx,
+      newEndIdx,
+      insertedVnodeQueue
+    );
+  }
+
+  // 新 children 数量小于旧 children
+  if (oldStartIdx <= oldEndIdx) {
+    removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
+  }
 }
 ```
 
