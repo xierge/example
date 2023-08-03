@@ -107,7 +107,7 @@ const container = document.getElementById("container");
 patch(container, vnode);
 ```
 
-### 源码分析
+### 源码分析（核心代码）
 
 #### h 函数
 
@@ -369,19 +369,88 @@ function patch(
       elm = oldVnode.elm!;
       parent = api.parentNode(elm) as Node;
 
+			// 创建新的元素 vnode.elm
       createElm(vnode, insertedVnodeQueue);
 
       if (parent !== null) {
+        // 插入新的 dom 到指定位置
         api.insertBefore(parent, vnode.elm!, api.nextSibling(elm));
+        // 移除旧的节点
         removeVnodes(parent, [oldVnode], 0, 0);
       }
+      }
     }
-
-    for (i = 0; i < insertedVnodeQueue.length; ++i) {
-      insertedVnodeQueue[i].data!.hook!.insert!(insertedVnodeQueue[i]);
-    }
-    for (i = 0; i < cbs.post.length; ++i) cbs.post[i]();
     return vnode;
   };
+```
+
+
+
+#### createElm
+
+1. 根据sel解析出元素的 tag id class 信息
+2. 根据tag创建元素，设置id，class属性
+3. 加载createHook
+4. 判断children是否为数组，如果是数组，循环递归调用 createElm 生成 dom 节点并且添加至自身元素
+
+```
+function createElm(vnode: VNode, insertedVnodeQueue: VNodeQueue): Node {
+  let i: any;
+  let data = vnode.data;
+  const children = vnode.children;
+  const sel = vnode.sel;
+  // 如果sel==="!" 表示创建注释节点
+  if (sel === "!") {
+    if (isUndef(vnode.text)) {
+      vnode.text = "";
+    }
+    vnode.elm = api.createComment(vnode.text!);
+  } else if (sel !== undefined) {
+    // 取id，class索引 
+    const hashIdx = sel.indexOf("#");
+    const dotIdx = sel.indexOf(".", hashIdx);
+    const hash = hashIdx > 0 ? hashIdx : sel.length;
+    const dot = dotIdx > 0 ? dotIdx : sel.length;
+    // 获取元素的Tag
+    const tag =
+      hashIdx !== -1 || dotIdx !== -1
+        ? sel.slice(0, Math.min(hash, dot))
+        : sel;
+    // 创建元素
+    const elm = (vnode.elm =
+      isDef(data) && isDef((i = data.ns))
+        ? api.createElementNS(i, tag, data)
+        : api.createElement(tag, data));
+    // 元素设置 id class
+    if (hash < dot) elm.setAttribute("id", sel.slice(hash + 1, dot));
+    if (dotIdx > 0)
+      elm.setAttribute("class", sel.slice(dot + 1).replace(/\./g, " "));
+    // 调用 createHooks 
+    for (i = 0; i < cbs.create.length; ++i) cbs.create[i](emptyNode, vnode);
+    // 判断 children 是否是数组，循环递归调用 createElm
+    if (is.array(children)) {
+      for (i = 0; i < children.length; ++i) {
+        const ch = children[i];
+        if (ch != null) {
+          api.appendChild(elm, createElm(ch as VNode, insertedVnodeQueue));
+        }
+      }
+    // 判断 text 是否是数字和字符串
+    } else if (is.primitive(vnode.text)) {
+      api.appendChild(elm, api.createTextNode(vnode.text));
+    }
+    // data 中定义的 hook
+    const hook = vnode.data!.hook;
+    if (isDef(hook)) {
+      hook.create?.(emptyNode, vnode);
+      if (hook.insert) {
+        insertedVnodeQueue.push(vnode);
+      }
+    }
+  } else {
+    vnode.elm = api.createTextNode(vnode.text!);
+  }
+  return vnode.elm;
+}
 ```
 
